@@ -1,114 +1,156 @@
-(function(){
+(function(window, document, console){
 
-    var ctx = new webkitAudioContext(),
-        processor = ctx.createJavaScriptNode(2048, 1, 1),
-        meter = document.getElementById('meter'),
-        media = document.getElementById('media'),
-        pico = document.getElementById('pico'),
-        analysis = document.getElementById('analysis'),
-        source,
-        counter = 0,
-        values = [],
-        sum = 0,
-        average,
-        noiseCounter = 0,
-        noiseSum = 0,
-        noiseValues = [],
-        noiseAverage,
-        warningTimer,
+    var
         analyzed = false,
         analyzingDuration,
-        analyzisDuration,
+        analysisDuration,
         audio,
-        request = false;
-
-    function gotStream(stream) {
-        // Create an AudioNode from the stream.
-        source = ctx.createMediaStreamSource(stream);
-        source.connect(processor);
-        // source.connect(ctx.destination);
-        processor.connect(ctx.destination);
-    }
+        averageRange = 1300, // approximately 1 minute
+        counter = 0,
+        ctx = new window.webkitAudioContext(),
+        elementAnalysis,
+        elementAverage,
+        elementBody,
+        elementMeter,
+        elementPeak,
+        endAnalysis,
+        limit,
+        noiseCounter = 0,
+        noiseRange = 23, // approximately 1 second
+        noiseSum = 0,
+        noiseValues = [],
+        processor = ctx.createJavaScriptNode(2048, 1, 1),
+        request = false,
+        startAnalysis,
+        source,
+        sum = 0,
+        tolerance = 0.20,
+        values = [],
+        waitToAnalyze = 30 * 1000; // 30 seconds
 
     // loop through PCM data and calculate average
     // volume for a given 2048 sample buffer
-    processor.onaudioprocess = function(evt){
-        var input = evt.inputBuffer.getChannelData(0),
+    processor.onaudioprocess = function(evt) {
+        var
+            average,
+            decibel,
+            i,
+            input = evt.inputBuffer.getChannelData(0),
             len = input.length,
-            total = 0,
-            i = total,
+            noiseAverage,
             rms,
-            decibel;
+            total = 0;
+
+        i = total;
 
         while ( i < len ) {
             total += Math.abs( input[i++] );
         }
+
         rms = Math.sqrt( total / len );
         decibel = 20 * (Math.log(rms) / Math.log(10));
 
         values.push(decibel);
         sum += decibel;
-        if (counter === 1000) {
-          sum -= values.shift();
-          if (!analyzed) {
-              analyzed = true;
-              pico.innerHTML = 'READY';
-          }
+        if (counter === averageRange) {
+            sum -= values.shift();
+            if (!analyzed) {
+                analyzed = true;
+                elementPeak.innerHTML = 'READY';
+            }
         } else {
-          counter += 1;
-            analysis.style.width = '' + (counter * 100 / 1000) + '%';
+            counter += 1;
+            elementAnalysis.style.width = (counter * 100 / averageRange) + '%';
         }
         average = sum / counter;
 
         noiseValues.push(decibel);
         noiseSum += decibel;
         if (analyzingDuration === undefined) {
-          analyzingDuration = false;
-          start = new Date();
+            analyzingDuration = false;
+            startAnalysis = new Date();
         }
-        if (noiseCounter === 100) {
-          if (analyzingDuration === false) {
-            analyzingDuration = true;
-            end = new Date();
-            analyzisDuration = end.getTime() - start.getTime();
-            console.log('Data length: ' + analyzisDuration + 'ms');
-          }
-          noiseSum -= noiseValues.shift();
+        if (noiseCounter === noiseRange) {
+            if (analyzingDuration === false) {
+                analyzingDuration = true;
+                endAnalysis = new Date();
+                analysisDuration = endAnalysis.getTime() - startAnalysis.getTime();
+                console.log('Data length: ' + analysisDuration + 'ms');
+            }
+            noiseSum -= noiseValues.shift();
         } else {
-          noiseCounter += 1;
+            noiseCounter += 1;
         }
         noiseAverage = noiseSum / noiseCounter;
 
-        if (analyzed && noiseAverage > average - average * 0.20) {
-            if (!request) {
-                request = true;
-                console.log('Silence! (', noiseAverage, ')');
-                pico.innerHTML = 'SILENCE!';
-                audio = document.createElement('audio');
-                audio.src = 'Voice_003.mp3';
-                audio.autoplay = true;
-                document.body.appendChild(audio);
-                warningTimer = setTimeout(clearPico, analyzisDuration * 2);
-          }
+        limit = average - average * tolerance;
+
+        if (analyzed && !request && noiseAverage > limit) {
+            request = true;
+            console.log('Silence! [noiseAverage: ' + noiseAverage + ', average: ' + average + ', limit: ' + limit + ']');
+            elementPeak.innerHTML = 'shhhhh...';
+            setupWarn();
+            window.setTimeout(forget1, 5000);
+            window.setTimeout(forget2, 15000);
+            window.setTimeout(forget3, 25000);
+            window.setTimeout(clearPeak, waitToAnalyze);
         }
 
-        media.innerHTML = average;
-        meter.style.width = ( rms * 100 ) + '%';
+        elementAverage.innerHTML = average;
+        // elementMeter.style.width = ( rms * 100 ) + '%';
     };
 
-    function clearPico() {
-      request = false;
-      pico.innerHTML = 'd-_-b';
-      audio.pause();
-      document.body.removeChild(audio);
-    }
-
-    function initAudio() {
-        navigator.webkitGetUserMedia({audio:true}, gotStream, function(e) {
-            alert('Error getting audio');
+    function init() {
+        collectElements();
+        navigator.webkitGetUserMedia({audio: true}, gotStream, function(e) {
+            window.alert('Error getting audio');
             console.log(e);
         });
     }
 
-    window.addEventListener('load', initAudio );
-})();
+    function collectElements() {
+        elementAnalysis = document.getElementById('analysis');
+        elementAverage = document.getElementById('average');
+        elementBody = document.body;
+        elementMeter = document.getElementById('meter');
+        elementPeak = document.getElementById('peak');
+    }
+
+    function setupWarn() {
+        audio = document.createElement('audio');
+        audio.src = 'shhhh.mp3';
+        audio.autoplay = true;
+        elementBody.appendChild(audio);
+    }
+
+    function gotStream(stream) {
+        // Create an AudioNode from the stream.
+        source = ctx.createMediaStreamSource(stream);
+        source.connect(processor);
+
+        // this commented line above means no audio playback from microphone
+        // source.connect(ctx.destination);
+
+        processor.connect(ctx.destination);
+    }
+
+    function forget1() {
+        elementPeak.innerHTML = '>[';
+    }
+
+    function forget2() {
+        elementPeak.innerHTML = ':|';
+    }
+
+    function forget3() {
+        elementPeak.innerHTML = ':)';
+    }
+
+    function clearPeak() {
+        request = false;
+        audio.pause();
+        elementBody.removeChild(audio);
+    }
+
+    window.addEventListener('load', init);
+}(this, document, this.console));
