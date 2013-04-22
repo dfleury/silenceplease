@@ -90,9 +90,9 @@
             console.log('Silence! [noiseAverage: ' + noiseAverage + ', average: ' + average + ', limit: ' + limit + ']');
             elementPeak.innerHTML = 'shhhhh...';
             setupWarn();
-            window.setTimeout(forget1, 5000);
-            window.setTimeout(forget2, 15000);
-            window.setTimeout(forget3, 25000);
+            window.setTimeout(forget1, waitToAnalyze * 0.2);
+            window.setTimeout(forget2, waitToAnalyze * 0.7);
+            window.setTimeout(forget3, waitToAnalyze * 0.9);
             window.setTimeout(clearPeak, waitToAnalyze);
         }
 
