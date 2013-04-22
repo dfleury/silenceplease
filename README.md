@@ -14,4 +14,6 @@ It takes 60 seconds to define the average noise in your environment and request 
 
 This average is continuously recalculated in function of the noise variation.
 
+After a warning, it waits 10 minutes to the next analysis of noise.
+
 Creative Commons license OK!? **Be free to use, improve and share! =)**
