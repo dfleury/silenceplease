@@ -1,0 +1,48 @@
+html, body {
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    background: black;
+}
+
+#meter {
+    -webkit-transition: width .05s;
+    background: green;
+    height: 15px;
+    margin: 2px 0;
+    position: absolute;
+    width: 0%;
+}
+
+#media {
+    color: white;
+    font: 12px monospace;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 42px;
+    top: 2px;
+}
+
+#pico {
+    color: white;
+    font: 96px monospace;
+    height: 100px;
+    left: 50%;
+    margin-left: -300px;
+    margin-top: -50px;
+    position: absolute;
+    width: 600px;
+    text-align: center;
+    top: 50%;
+}
+
+#analysis {
+    background: white;
+    position: absolute;
+    bottom: 0;
+    height: 5px;
+    width: 0%;
+}
