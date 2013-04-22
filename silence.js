@@ -26,7 +26,7 @@
         sum = 0,
         tolerance = 0.20,
         values = [],
-        waitToAnalyze = 30 * 1000; // 30 seconds
+        waitToAnalyze = 10 * 60 * 1000; // 10 minutes
 
     // loop through PCM data and calculate average
     // volume for a given 2048 sample buffer
