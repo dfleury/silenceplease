@@ -66,6 +66,7 @@
             counter += 1;
         }
         average = sum / counter;
+        window.lastAverage = average;
         averages.push(average);
 
         // Average of noise evaluation
