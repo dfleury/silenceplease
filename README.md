@@ -10,7 +10,7 @@ Only tested on Chrome, you need to activate the "Web Audio Input" setting on chr
 3. ./run.sh
 4. Open in the chrome http://localhost:8831/
 
-It takes 60 seconds to define the average noise in your environment and request silence when the noise pass over in more of 20% of the average.
+It takes 60 seconds to define the average noise in your environment and request silence when the noise pass over in more of 12,5% of the average or higher than -20db.
 
 This average is continuously recalculated in function of the noise variation.
 

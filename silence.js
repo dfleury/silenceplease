@@ -15,6 +15,7 @@
         elementNoiseRange,
         elementPeak,
         endAnalysis,
+        fixedLimit = 80,
         limit,
         noiseAverages = [],
         noiseCounter = 0,
@@ -26,7 +27,7 @@
         startAnalysis,
         source,
         sum = 0,
-        tolerance = 0.10, // twenty percent
+        tolerance = 0.125, // twelve percent and a half
         values = [],
         waitToAnalyze = 10 * 60 * 1000; // 10 minutes
 
@@ -92,7 +93,7 @@
         limit = average + average * tolerance;
 
         // Requesting silence
-        if (analyzed && !request && noiseAverage > limit) {
+        if (analyzed && !request && (noiseAverage > limit || noiseAverage > fixedLimit)) {
             request = true;
             elementPeak.innerHTML = 'shhhhh...';
             setupWarn();
