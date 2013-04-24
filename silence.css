@@ -7,25 +7,6 @@ body {
     background: black;
 }
 
-#meter {
-    -webkit-transition: width .05s;
-    background: green;
-    height: 15px;
-    margin: 2px 0;
-    position: absolute;
-    width: 0%;
-}
-
-#average {
-    color: white;
-    font: 12px monospace;
-    overflow: hidden;
-    position: absolute;
-    white-space: nowrap;
-    width: 42px;
-    top: 2px;
-}
-
 #peak {
     color: white;
     font: 96px monospace;
@@ -37,12 +18,21 @@ body {
     width: 600px;
     text-align: center;
     top: 50%;
+    z-index: 2;
 }
 
-#analysis {
-    background: white;
-    position: absolute;
+#noise-range {
+    background: #444;
+    width: 1px;
     bottom: 0;
-    height: 5px;
-    width: 0%;
+    top: 0;
+    position: absolute;
+    z-index: 2;
+}
+
+#chart {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
 }
