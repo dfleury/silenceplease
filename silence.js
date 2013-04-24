@@ -125,6 +125,9 @@
         elementBody.appendChild(elementChart);
         chartContext = elementChart.getContext('2d');
         elementNoiseRange.style.right = noiseRange + 'px';
+        elementChart.addEventListener('click', function(){
+            console.log('Last average:', window.lastAverage);
+        }, false);
         renderChart();
     }
 
