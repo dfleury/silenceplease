@@ -30,7 +30,8 @@
         sum = 0,
         tolerance = 0.125, // twelve percent and a half
         values = [],
-        waitToAnalyze = 10 * 60 * 1000; // 10 minutes
+        waitToAnalyze = 10 * 60 * 1000, // 10 minutes
+        warnOffset = 0;
 
     // loop through PCM data and calculate average
     // volume for a given 2048 sample buffer
@@ -92,9 +93,15 @@
         noiseAverages.push(noiseAverage);
 
         limit = average + average * tolerance;
+        warnOffset += 1;
 
         // Requesting silence
         if (analyzed && !request && ((noiseAverage > minimumAverage && noiseAverage > limit) || noiseAverage > fixedLimit)) {
+            console.log('noiseAverage:', noiseAverage,
+                ' minimumAverage:', minimumAverage,
+                ' limit:', limit,
+                ' fixedLimit:', fixedLimit);
+            warnOffset = 0;
             request = true;
             elementPeak.innerHTML = 'shhhhh...';
             setupWarn();
@@ -186,8 +193,9 @@
         highestToleratedAverage = highest * (1 + tolerance);
         lowest = 0;
 
-        // Time-series of averages
         c.clearRect(0, 0, canvasWidth, canvasHeight);
+
+        // Time-series of averages
         c.fillStyle = '#333333';
         c.beginPath();
         c.moveTo(0, canvasHeight);
@@ -201,6 +209,25 @@
         c.lineTo(0, bottom);
         c.closePath();
         c.fill();
+
+        // Mark of last warn
+        if (warnOffset < canvasWidth) {
+            c.fillStyle = '#FF0000';
+            c.beginPath();
+            x = x - warnOffset;
+            value = values[valuesLength - warnOffset] - zerate;
+            relativeY = value * 100 / highestToleratedAverage;
+            y = canvasHeight - relativeY * canvasHeight / 100;
+            c.moveTo(x, y);
+            c.lineTo(x, canvasHeight);
+            c.stroke();
+
+            c.font = '12pt Helvetica, sans-serif';
+            c.textAlign = 'right';
+            c.textBaseline = 'bottom';
+            c.fillStyle = '#FF0000';
+            c.fillText(parseInt(value + zerate - 100, 10) + 'db', x - 5, y);
+        }
 
         noiseZero = canvasWidth - noiseRange;
 
@@ -219,6 +246,12 @@
         c.closePath();
         c.fill();
 
+        c.font = '14pt Helvetica, sans-serif';
+        c.textAlign = 'right';
+        c.textBaseline = 'bottom';
+        c.fillStyle = '#A80000';
+        c.fillText(parseInt(value + zerate - 100, 10) + 'db', noiseZero - 10, Math.min(y, canvasHeight));
+
         // Limit line
         relativeY = (limit - zerate) * 100 / highestToleratedNoise;
         y = canvasHeight - relativeY * canvasHeight / 100;
@@ -229,6 +262,12 @@
         c.lineTo(canvasWidth, y);
         c.closePath();
         c.stroke();
+
+        c.font = '14pt Helvetica, sans-serif';
+        c.textAlign = 'right';
+        c.textBaseline = 'top';
+        c.fillStyle = 'red';
+        c.fillText(parseInt(limit - 100, 10) + 'db', noiseZero - 10, y);
 
         window.webkitRequestAnimationFrame(renderChart);
     }
